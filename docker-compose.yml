@@ -1,0 +1,22 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+    - "5432:5432"
+    volumes:
+    - ./volumes/postgres/:/var/lib/postgresql/data/
+    - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+
+  gomigrate:
+    image: stephaneklein/migrate:4.14.1-26-spacefill-patch-issue-95
+    command: -path=/migrations/ -verbose -database "postgres://postgres:password@postgres:5432/postgres?x-migrations-table=\"gomigrate\".\"schema_migrations\"&x-migrations-table-quoted=1&sslmode=disable" up
+    volumes:
+    - ./migrations/:/migrations/
+    profiles: ["gomigrate"]
+    depends_on:
+      - postgres
